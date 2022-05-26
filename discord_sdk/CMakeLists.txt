@@ -1,0 +1,5 @@
+project(discord_sdk)
+file(GLOB SOURCES "*.cpp")
+add_library(discord_sdk STATIC ${SOURCES})
+target_link_libraries(discord_sdk ${CMAKE_CURRENT_SOURCE_DIR}/data/discord_game_sdk.dll.lib)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data/discord_game_sdk.dll DESTINATION ${CMAKE_BINARY_DIR})

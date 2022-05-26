@@ -16,37 +16,35 @@ namespace {
     volatile bool interrupted = false; // Set to true on ctrl+c
 }
 
-struct State
-{
+struct State {
     discord::User user;
     std::unique_ptr<discord::Core> core;
 };
 
-int main()
-{
+int main() {
     State state {};
 
     discord::Core *core {};
     discord::Result result = discord::Core::Create(D_CLIENT_ID, DiscordCreateFlags_Default, &core);
 
     state.core.reset(core);
-    if (!state.core)
-    {
+    if (!state.core) {
         std::cerr << "Failed initialising discord::Core | " << static_cast<int>(result) << "\n";
         std::exit(1);
     }
 
     core->SetLogHook(D_LOG_LEVEL, [](discord::LogLevel log_level, const char *message) {
-        std::cout << "discord_sdk (" << static_cast<uint32_t>(log_level) << ") # " << message << std::endl;
+        std::cerr << "discord_sdk (" << static_cast<uint32_t>(log_level) << ") # " << message << std::endl;
     });
 
     core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
         state.core->UserManager().GetCurrentUser(&state.user);
+        std::cerr << "Logged in as " << state.user.GetUsername() << "#" << state.user.GetDiscriminator() << std::endl;
     });
 
     discord::Activity activity {};
-    activity.SetState("Hello World!");
-    activity.SetDetails("1234");
+    activity.SetState("hello romanian");
+    activity.GetAssets().SetLargeImage("7130406-hsc00001-7");
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
         std::cerr << ((result == discord::Result::Ok) ? "discord_sdk set status successfully\n" : "discord_sdk failed to set status\n");
     });
