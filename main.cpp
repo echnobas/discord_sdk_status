@@ -1,15 +1,16 @@
 #include <iostream>
 #include <chrono>
 #include <memory>
-#include <signal.h>
+#include <stdint.h>
 #include <thread>
 #include <csignal>
 
-using namespace std::literals::chrono_literals;
-
 #include "discord_sdk/discord.h"
 
-const std::uint64_t D_CLIENT_ID = 978697179394895872;
+using namespace std::literals::chrono_literals;
+
+
+const std::uint64_t D_CLIENT_ID = 824708283024801834;
 const discord::LogLevel D_LOG_LEVEL = discord::LogLevel::Info;
 
 namespace {
@@ -29,25 +30,35 @@ int main() {
 
     state.core.reset(core);
     if (!state.core) {
-        std::cerr << "Failed initialising discord::Core | " << static_cast<int>(result) << "\n";
+        std::cerr << "Failed initialising discord::Core | " << static_cast<int>(result) << std::endl;
         std::exit(1);
     }
 
-    core->SetLogHook(D_LOG_LEVEL, [](discord::LogLevel log_level, const char *message) {
+    state.core->SetLogHook(D_LOG_LEVEL, [](discord::LogLevel log_level, const char *message) {
         std::cerr << "discord_sdk (" << static_cast<uint32_t>(log_level) << ") # " << message << std::endl;
     });
 
-    core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
+    state.core->UserManager().OnCurrentUserUpdate.Connect([&state]() {
         state.core->UserManager().GetCurrentUser(&state.user);
         std::cerr << "Logged in as " << state.user.GetUsername() << "#" << state.user.GetDiscriminator() << std::endl;
     });
 
+    discord::ActivityParty party {};
+
     discord::Activity activity {};
-    activity.SetState("hello romanian");
-    activity.GetAssets().SetLargeImage("7130406-hsc00001-7");
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::cerr << ((result == discord::Result::Ok) ? "discord_sdk set status successfully\n" : "discord_sdk failed to set status\n");
+    activity.SetState("writing rust");
+    activity.GetAssets().SetLargeImage("rust2");
+    activity.GetParty().SetId("test");
+    activity.GetParty().GetSize().SetCurrentSize(69);
+    activity.GetParty().GetSize().SetMaxSize(420);
+    activity.GetTimestamps().SetStart(0);
+    activity.GetTimestamps().SetEnd(9223372036854775807);
+
+
+    state.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
+        std::cerr << ((result == discord::Result::Ok) ? ("discord_sdk set status successfully") : ("discord_sdk failed to set status")) << std::endl;
     });
+
 
     std::signal(SIGINT, [](int) { interrupted = true; });
 
